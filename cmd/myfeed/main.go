@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/themisir/myfeed/static"
 	"log"
+
+	"github.com/themisir/myfeed/static"
 
 	"github.com/themisir/myfeed/pkg/web"
 )
