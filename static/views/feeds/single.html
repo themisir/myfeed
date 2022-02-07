@@ -1,0 +1,19 @@
+<h2>{{ .Feed.Name }}</h2>
+<hr />
+
+<div class="post-list">
+  {{ range .Posts -}}
+  <div class="post-item">
+    <a class="post-link" href="{{ .Url }}">{{ .Title }}</a>
+    <br/>
+    <small class="post-meta">
+      {{ with .PublishedAt -}}
+      <span class="post-meta-time" title="{{ . }}">{{ .Format "02 Jan 2006" }}</span>
+      <span> • </span>
+      {{- end }}
+      <span class="post-source" title="{{ .Source.Url }}">{{ .Source.Title }}</span>
+    </small>
+  </div>
+  {{- end }}
+</div>
+

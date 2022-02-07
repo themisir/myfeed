@@ -1,0 +1,15 @@
+<h2>Feeds</h2>
+<hr />
+
+<ol>
+  {{ range .Feeds -}}
+  <li>
+    <p>
+      <a href="/feeds/{{ .Id }}">{{ .Name }}</a><br/>
+      <a href="/feeds/{{ .Id }}/edit">Edit</a>
+    </p>
+  </li>
+  {{- end }}
+</ol>
+
+<a href="/feeds/create">Create</a>

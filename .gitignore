@@ -1,0 +1,12 @@
+# Cache and build dirs
+/bin
+/.go
+
+# Data & Storage
+/data
+*.db
+*.db-journal
+
+# OS
+.DS_Store
+Thumbs.db

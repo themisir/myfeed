@@ -1,0 +1,83 @@
+<h3>Edit Feed</h3>
+<hr />
+
+<form method="post">
+  <div class="form-group">
+    <label for="name" class="form-label">Name:</label>
+    <input type="text" class="form-control" name="name" id="name" value="{{ .Feed.Name }}" required />
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Sources:</label>
+
+    <div class="source-editor">
+      {{ range .Sources }}
+      <div>
+        <input type="url" class="form-control" name="sources" value="{{ .Url }}" required />
+      </div>
+      {{ end }}
+      <div>
+        <input type="text" class="form-control" placeholder="Feed url" />
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <button type="submit">Save</button>
+  </div>
+</form>
+
+<script>
+  function removeItem(event) {
+    event.target.parentElement.remove();
+  }
+
+  function editItem(event) {
+    if (event.target.value.length == 0) {
+      event.target.parentElement.remove();
+    }
+  }
+
+  function createSourceEditor(element) {
+    const newEntryEditor = element.querySelector(':last-child>input');
+
+    function editItem(event) {
+      if (event.target.value.length == 0) {
+        event.target.parentElement.remove();
+        newEntryEditor.focus();
+      }
+    }
+
+    Array.from(element.querySelectorAll(':not(:last-child)>input')).forEach(function (element) {
+      element.addEventListener('input', editItem);
+    });
+
+    newEntryEditor.addEventListener('input', function (event) {
+      const item = document.createElement('div');
+
+      const itemEdit = document.createElement('input');
+      itemEdit.addEventListener('input', editItem);
+      itemEdit.className = 'form-control';
+      itemEdit.name = 'sources';
+      itemEdit.type = 'text';
+      itemEdit.required = true;
+      itemEdit.value = event.target.value;
+
+      item.appendChild(itemEdit);
+
+      element.insertBefore(item, newEntryEditor.parentElement);
+
+      itemEdit.setSelectionRange(
+        newEntryEditor.selectionStart,
+        newEntryEditor.selectionEnd,
+        newEntryEditor.selectionDirection,
+      );
+      itemEdit.focus();
+
+      newEntryEditor.value = '';
+    });
+  }
+
+  Array.from(document.getElementsByClassName('source-editor'))
+    .forEach(createSourceEditor);
+</script>

@@ -1,0 +1,19 @@
+.row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.post-meta {
+  opacity: .6;
+}
+
+.post-list {
+  padding-top: 10px;
+  padding-bottom: 20px;
+}
+
+.post-item {
+  margin-bottom: 20px;
+}
