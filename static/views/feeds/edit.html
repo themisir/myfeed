@@ -8,6 +8,14 @@
   </div>
 
   <div class="form-group">
+    <label for="privacy" class="form-label">Privacy:</label>
+    <select class="form-control" name="privacy" id="privacy">
+      <option value="private" {{ if not .Feed.IsPublic -}} selected {{- end }}>Private</option>
+      <option value="public" {{ if .Feed.IsPublic -}} selected {{- end }}>Public</option>
+    </select>
+  </div>
+
+  <div class="form-group">
     <label class="form-label">Sources:</label>
 
     <div class="source-editor">
