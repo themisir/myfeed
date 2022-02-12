@@ -1,7 +1,8 @@
 package updating
 
 type Feed struct {
-	Name string
+	Name     string
+	IsPublic bool
 }
 
 type FeedRepository interface {

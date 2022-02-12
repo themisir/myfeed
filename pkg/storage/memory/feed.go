@@ -25,6 +25,7 @@ type FeedData struct {
 	Name      string `json:"name"`
 	UserId    string `json:"user_id"`
 	SourceIds []int  `json:"source_ids"`
+	IsPublic  bool   `json:"is_public"`
 }
 
 type feed struct {
@@ -41,6 +42,10 @@ func (f *feed) Name() string {
 
 func (f *feed) UserId() string {
 	return f.FeedData.UserId
+}
+
+func (f *feed) IsPublic() bool {
+	return f.FeedData.IsPublic
 }
 
 type feedRepository struct {
@@ -71,9 +76,10 @@ func (r *feedRepository) load() {
 
 func (r *feedRepository) AddFeed(data adding.FeedData) (adding.Feed, error) {
 	item := &feed{FeedData{
-		Id:     len(r.feeds),
-		Name:   data.Name,
-		UserId: data.UserId,
+		Id:       len(r.feeds),
+		Name:     data.Name,
+		UserId:   data.UserId,
+		IsPublic: data.IsPublic,
 	}}
 
 	r.feeds = append(r.feeds, item)
@@ -108,7 +114,7 @@ func (r *feedRepository) GetFeed(feedId int) (listing.Feed, error) {
 		return feed, nil
 	}
 
-	return nil, ErrEntityNotFound
+	return nil, listing.ErrNotFound
 }
 
 func (r *feedRepository) RemoveFeed(feedId int) error {
@@ -121,18 +127,19 @@ func (r *feedRepository) RemoveFeed(feedId int) error {
 		return nil
 	}
 
-	return ErrEntityNotFound
+	return listing.ErrNotFound
 }
 
 func (r *feedRepository) UpdateFeed(feedId int, data updating.Feed) error {
 	feed, _ := r.findFeed(feedId)
 	if feed != nil {
 		feed.FeedData.Name = data.Name
+		feed.FeedData.IsPublic = data.IsPublic
 		r.save()
 		return nil
 	}
 
-	return ErrEntityNotFound
+	return listing.ErrNotFound
 }
 
 func (r *feedRepository) UpdateFeedSources(feedId int, sourceIds ...int) error {
@@ -143,5 +150,5 @@ func (r *feedRepository) UpdateFeedSources(feedId int, sourceIds ...int) error {
 		return nil
 	}
 
-	return ErrEntityNotFound
+	return listing.ErrNotFound
 }

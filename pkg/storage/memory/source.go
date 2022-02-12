@@ -70,7 +70,7 @@ func (r *sourceRepository) GetSource(sourceId int) (listing.Source, error) {
 		}
 	}
 
-	return nil, ErrEntityNotFound
+	return nil, listing.ErrNotFound
 }
 
 func (r *sourceRepository) GetSources() ([]listing.Source, error) {
@@ -96,7 +96,7 @@ func (r *sourceRepository) AddSource(data adding.SourceData) (adding.Source, err
 func (r *sourceRepository) GetFeedSources(feedId int) ([]listing.Source, error) {
 	feed, _ := r.feedRepository.findFeed(feedId)
 	if feed == nil {
-		return nil, ErrEntityNotFound
+		return nil, listing.ErrNotFound
 	}
 
 	var result []listing.Source
@@ -118,7 +118,7 @@ func (r *sourceRepository) FindSourceByUrl(url string) (listing.Source, error) {
 		}
 	}
 
-	return nil, ErrEntityNotFound
+	return nil, listing.ErrNotFound
 }
 
 func (r *sourceRepository) RemoveSource(sourceId int) error {
@@ -132,7 +132,7 @@ func (r *sourceRepository) RemoveSource(sourceId int) error {
 		}
 	}
 
-	return ErrEntityNotFound
+	return listing.ErrNotFound
 }
 
 func (r *sourceRepository) UpdateSource(sourceId int, data updating.Source) error {
@@ -144,5 +144,5 @@ func (r *sourceRepository) UpdateSource(sourceId int, data updating.Source) erro
 		}
 	}
 
-	return ErrEntityNotFound
+	return listing.ErrNotFound
 }

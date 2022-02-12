@@ -4,6 +4,7 @@ type Feed interface {
 	Id() int
 	Name() string
 	UserId() string
+	IsPublic() bool
 }
 
 type FeedRepository interface {

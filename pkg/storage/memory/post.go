@@ -146,7 +146,7 @@ func (r *postRepository) GetSourcePosts(sourceId int) ([]listing.Post, error) {
 func (r *postRepository) GetFeedPosts(feedId int) ([]listing.SourcePost, error) {
 	feed, _ := r.feedRepository.findFeed(feedId)
 	if feed == nil {
-		return nil, ErrEntityNotFound
+		return nil, listing.ErrNotFound
 	}
 
 	sources := make(map[int]listing.Source, len(feed.SourceIds))
@@ -189,7 +189,7 @@ func (r *postRepository) RemoveSourcePost(sourceId int, postId int) error {
 		}
 	}
 
-	return ErrEntityNotFound
+	return listing.ErrNotFound
 }
 
 func (r *postRepository) RemoveAllSourcePosts(sourceId int) error {
@@ -218,7 +218,7 @@ func (r *postRepository) UpdateSourcePost(sourceId int, postId int, data updatin
 		}
 	}
 
-	return ErrEntityNotFound
+	return listing.ErrNotFound
 }
 
 func sortPosts(posts interface{}) {
