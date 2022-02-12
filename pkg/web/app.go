@@ -76,7 +76,7 @@ func (a *App) initAuth(e *echo.Echo) {
 	e.Use(handler.Init)
 
 	e.GET("/login", func(c echo.Context) error {
-		return c.Render(http.StatusOK, "login.html", nil)
+		return c.Render(http.StatusOK, "login.html", echo.Map{"Title": "Login"})
 	})
 
 	e.POST("/login", func(c echo.Context) error {
@@ -99,11 +99,12 @@ func (a *App) initAuth(e *echo.Echo) {
 
 		return c.Render(http.StatusOK, "login.html", echo.Map{
 			"Error": "Invalid email or password",
+			"Title": "Login",
 		})
 	})
 
 	e.GET("/register", func(c echo.Context) error {
-		return c.Render(http.StatusOK, "register.html", nil)
+		return c.Render(http.StatusOK, "register.html", echo.Map{"Title": "Register"})
 	})
 
 	e.POST("/register", func(c echo.Context) error {
@@ -113,12 +114,14 @@ func (a *App) initAuth(e *echo.Echo) {
 		if _, err := mail.ParseAddress(email); err != nil {
 			return c.Render(http.StatusOK, "register.html", echo.Map{
 				"Error": "Invalid email address",
+				"Title": "Register",
 			})
 		}
 
 		if len(password) < 6 {
 			return c.Render(http.StatusOK, "register.html", echo.Map{
 				"Error": "Password must be at least 6 characters long",
+				"Title": "Register",
 			})
 		}
 
@@ -131,6 +134,7 @@ func (a *App) initAuth(e *echo.Echo) {
 
 			return c.Render(http.StatusOK, "register.html", echo.Map{
 				"Error": "Failed to create user account, please try again",
+				"Title": "Register",
 			})
 		}
 

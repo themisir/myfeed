@@ -34,12 +34,15 @@ func (a *App) getFeedsHandler(c echo.Context) error {
 
 	return c.Render(http.StatusOK, "feeds/list.html", echo.Map{
 		"Feeds": feeds,
+		"Title": "Your feeds",
 	})
 }
 
 // GET /feeds/create
 func (a *App) getFeedsCreateHandler(c echo.Context) error {
-	return c.Render(http.StatusOK, "feeds/create.html", nil)
+	return c.Render(http.StatusOK, "feeds/create.html", echo.Map{
+		"Title": "Create a new feed",
+	})
 }
 
 // POST /feeds/create
@@ -95,6 +98,7 @@ func (a *App) getFeedsEditHandler(c echo.Context) error {
 	return c.Render(http.StatusOK, "feeds/edit.html", echo.Map{
 		"Feed":    feed,
 		"Sources": sources,
+		"Title":   "Edit feed",
 	})
 }
 
@@ -184,6 +188,7 @@ func (a *App) getFeedHandler(c echo.Context) error {
 	return c.Render(http.StatusOK, "feeds/single.html", echo.Map{
 		"Feed":  feed,
 		"Posts": posts,
+		"Title": feed.Name(),
 	})
 }
 
