@@ -1,4 +1,10 @@
-This favicon was generated using the following graphics from Twitter Twemoji:
+# Licenses
+
+## MyFeed
+
+See https://github.com/themisir/myfeed/tree/main/LICENSE
+
+## Favicon:
 
 - Graphics Title: 1f4da.svg
 - Graphics Author: Copyright 2020 Twitter, Inc and other contributors (https://github.com/twitter/twemoji)
