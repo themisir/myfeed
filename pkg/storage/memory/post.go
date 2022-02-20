@@ -116,19 +116,16 @@ func (r *postRepository) AddPost(data adding.PostData) (adding.Post, error) {
 	return post, err
 }
 
-func (r *postRepository) AddManyPosts(items ...adding.PostData) ([]adding.Post, error) {
-	result := make([]adding.Post, len(items))
-	for i, item := range items {
-		post, err := r.addPost(item)
+func (r *postRepository) AddManyPosts(items ...adding.PostData) error {
+	for _, item := range items {
+		_, err := r.addPost(item)
 		if err != nil {
-			return nil, err
+			return err
 		}
-
-		result[i] = post
 	}
 
 	r.save()
-	return result, nil
+	return nil
 }
 
 func (r *postRepository) GetSourcePosts(sourceId int) ([]listing.Post, error) {

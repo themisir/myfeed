@@ -119,7 +119,7 @@ func (m *Manager) processSources() {
 
 		// Update cached posts
 		_ = m.postRepository.RemoveAllSourcePosts(source.id)
-		_, _ = m.postRepository.AddManyPosts(posts...)
+		_ = m.postRepository.AddManyPosts(posts...)
 
 		go func() {
 			m.delayedQueue <- source

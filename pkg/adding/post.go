@@ -21,6 +21,6 @@ type (
 	}
 	PostRepository interface {
 		AddPost(data PostData) (Post, error)
-		AddManyPosts(items ...PostData) ([]Post, error)
+		AddManyPosts(items ...PostData) error
 	}
 )
