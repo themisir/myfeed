@@ -3,6 +3,7 @@ package web
 import (
 	"errors"
 	"fmt"
+	"github.com/themisir/myfeed/pkg/log"
 	"io/fs"
 	"net/http"
 	"net/mail"
@@ -25,6 +26,7 @@ type AppConfig struct {
 	TemplateRoot string
 	AssetsRoot   string
 	StaticFS     fs.FS
+	DataSource   string
 }
 
 type App struct {
@@ -35,6 +37,8 @@ type App struct {
 	feeds   models.FeedRepository
 	posts   models.PostRepository
 	users   models.UserRepository
+
+	logger log.Logger
 
 	sourceManager *sources.Manager
 }
@@ -64,6 +68,8 @@ func (a *App) Run() error {
 		Filesystem: http.FS(a.fs),
 		Root:       a.config.AssetsRoot,
 	}))
+
+	a.logger = e.Logger
 
 	a.initStorage()
 	a.initAuth(e)
@@ -162,11 +168,15 @@ func (a *App) initAuth(e *echo.Echo) {
 }
 
 func (a *App) initStorage() {
-	a.initDbStorage()
+	if a.config.DataSource == "memory://" {
+		a.initMemoryStorage()
+	} else {
+		a.initDbStorage()
+	}
 }
 
 func (a *App) initDbStorage() {
-	db, err := postgres.Connect("postgres://misir:@localhost:5432/myfeed_db?sslmode=disable")
+	db, err := postgres.Connect(a.config.DataSource)
 	initerr(err, "failed to connect to the database: %s")
 	a.feeds, err = db.Feeds()
 	initerr(err, "failed to create feed repository: %s")
@@ -195,7 +205,7 @@ func (a *App) initMemoryStorage() {
 }
 
 func (a *App) initManager() {
-	a.sourceManager = sources.NewManager(a.sources, a.posts, a.feeds)
+	a.sourceManager = sources.NewManager(a.sources, a.posts, a.feeds, a.logger)
 	if err := a.sourceManager.Start(); err != nil {
 		initerr(err, "failed to start source manager: %s")
 	}

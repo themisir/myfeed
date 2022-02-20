@@ -1,6 +1,7 @@
 package memory
 
 import (
+	"errors"
 	"github.com/themisir/myfeed/pkg/adding"
 	"github.com/themisir/myfeed/pkg/listing"
 	"github.com/themisir/myfeed/pkg/updating"
@@ -133,6 +134,10 @@ func (r *sourceRepository) RemoveSource(sourceId int) error {
 	}
 
 	return listing.ErrNotFound
+}
+
+func (r *sourceRepository) RemoveEmptySources() error {
+	return errors.New("not implemented")
 }
 
 func (r *sourceRepository) UpdateSource(sourceId int, data updating.Source) error {

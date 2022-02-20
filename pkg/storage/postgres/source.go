@@ -8,24 +8,26 @@ import (
 )
 
 type sourceRepository struct {
-	c                   *Connection
-	addSourceStmt       *sql.Stmt
-	getSourceStmt       *sql.Stmt
-	getSourcesStmt      *sql.Stmt
-	getFeedSourcesStmt  *sql.Stmt
-	findSourceByUrlStmt *sql.Stmt
-	removeSourceStmt    *sql.Stmt
-	updateSourceStmt    *sql.Stmt
+	c                      *Connection
+	addSourceStmt          *sql.Stmt
+	getSourceStmt          *sql.Stmt
+	getSourcesStmt         *sql.Stmt
+	getFeedSourcesStmt     *sql.Stmt
+	findSourceByUrlStmt    *sql.Stmt
+	removeSourceStmt       *sql.Stmt
+	removeEmptySourcesStmt *sql.Stmt
+	updateSourceStmt       *sql.Stmt
 }
 
 const (
-	addSourceQuery       = `INSERT INTO sources (title, url) VALUES ($1, $2) RETURNING id`
-	getSourceQuery       = `SELECT id, title, url FROM sources WHERE id = $1`
-	getSourcesQuery      = `SELECT id, title, url FROM sources`
-	getFeedSourcesQuery  = `SELECT id, title, url FROM sources JOIN feed_source fs ON fs.source_id = sources.id WHERE fs.feed_id = $1`
-	findSourceByUrlQuery = `SELECT id, title, url FROM sources WHERE url = $1`
-	removeSource         = `DELETE FROM sources WHERE id = $1`
-	updateSource         = `UPDATE sources SET title = $1 WHERE id = $2`
+	addSourceQuery          = `INSERT INTO sources (title, url) VALUES ($1, $2) RETURNING id`
+	getSourceQuery          = `SELECT id, title, url FROM sources WHERE id = $1`
+	getSourcesQuery         = `SELECT id, title, url FROM sources`
+	getFeedSourcesQuery     = `SELECT id, title, url FROM sources JOIN feed_source fs ON fs.source_id = sources.id WHERE fs.feed_id = $1`
+	findSourceByUrlQuery    = `SELECT id, title, url FROM sources WHERE url = $1`
+	removeSource            = `DELETE FROM sources WHERE id = $1`
+	removeEmptySourcesQuery = `WITH s AS (SELECT source_id AS id FROM feed_source) DELETE FROM sources WHERE id NOT IN (SELECT id FROM s)`
+	updateSource            = `UPDATE sources SET title = $1 WHERE id = $2`
 )
 
 func newSourceRepository(c *Connection) (r *sourceRepository, err error) {
@@ -37,6 +39,7 @@ func newSourceRepository(c *Connection) (r *sourceRepository, err error) {
 		Prepare(getFeedSourcesQuery, &r.getFeedSourcesStmt).
 		Prepare(findSourceByUrlQuery, &r.findSourceByUrlStmt).
 		Prepare(removeSource, &r.removeSourceStmt).
+		Prepare(removeEmptySourcesQuery, &r.removeEmptySourcesStmt).
 		Prepare(updateSource, &r.updateSourceStmt).
 		Exec()
 	return
@@ -102,6 +105,11 @@ func (r *sourceRepository) FindSourceByUrl(url string) (listing.Source, error) {
 
 func (r *sourceRepository) RemoveSource(sourceId int) (err error) {
 	_, err = r.removeSourceStmt.Exec(sourceId)
+	return
+}
+
+func (r *sourceRepository) RemoveEmptySources() (err error) {
+	_, err = r.removeEmptySourcesStmt.Exec()
 	return
 }
 

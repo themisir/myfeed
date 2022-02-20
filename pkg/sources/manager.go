@@ -3,6 +3,7 @@ package sources
 import (
 	"fmt"
 	"github.com/themisir/myfeed/pkg/listing"
+	"github.com/themisir/myfeed/pkg/log"
 	"time"
 
 	"github.com/themisir/myfeed/pkg/adding"
@@ -10,14 +11,14 @@ import (
 	"github.com/themisir/myfeed/pkg/updating"
 )
 
-func NewManager(sourceRepository models.SourceRepository, postRepository models.PostRepository, feedUpdating updating.FeedRepository) *Manager {
+func NewManager(sourceRepository models.SourceRepository, postRepository models.PostRepository, feedUpdating updating.FeedRepository, logger log.Logger) *Manager {
 	return &Manager{
 		sourceRepository: sourceRepository,
 		postRepository:   postRepository,
 		feedUpdating:     feedUpdating,
 		resolver:         &resolver{},
-		immediateQueue:   make(chan sourceQueueEntry),
-		delayedQueue:     make(chan sourceQueueEntry),
+		queue:            make(chan sourceQueueEntry, 32),
+		logger:           logger,
 	}
 }
 
@@ -25,11 +26,11 @@ type Manager struct {
 	sourceRepository models.SourceRepository
 	postRepository   models.PostRepository
 	feedUpdating     updating.FeedRepository
+	logger           log.Logger
 
 	resolver Resolver
 
-	immediateQueue chan sourceQueueEntry
-	delayedQueue   chan sourceQueueEntry
+	queue chan sourceQueueEntry
 }
 
 type sourceQueueEntry struct {
@@ -65,8 +66,13 @@ func (m *Manager) UpdateFeedSources(feedId int, sourceUrls ...string) error {
 }
 
 func (m *Manager) Start() error {
-	go m.processSources()
-	go m.processDelayedQueue()
+	// Start periodic timer
+	go m.runTimer()
+
+	// Create 4 worker goroutine for processing sources
+	for i := 0; i < 4; i++ {
+		go m.processSources()
+	}
 
 	return m.enqueueExistingSources()
 }
@@ -84,7 +90,7 @@ func (m *Manager) enqueueExistingSources() error {
 }
 
 func (m *Manager) enqueue(source listing.Source) {
-	m.immediateQueue <- sourceQueueEntry{
+	m.queue <- sourceQueueEntry{
 		id:  source.Id(),
 		url: source.Url(),
 	}
@@ -92,13 +98,13 @@ func (m *Manager) enqueue(source listing.Source) {
 
 func (m *Manager) processSources() {
 	for {
-		source := <-m.immediateQueue
+		source := <-m.queue
 
+		// Resolve source
 		resolved, err := m.resolver.Resolve(source.url)
 		if err != nil {
-			fmt.Printf("%s", err)
+			m.logger.Errorf("failed to process source %v on '%s': %s", source.id, source.url, err)
 			continue
-			// TODO: handle error
 		}
 
 		// Update source details
@@ -122,18 +128,25 @@ func (m *Manager) processSources() {
 		// Update cached posts
 		_ = m.postRepository.RemoveAllSourcePosts(source.id)
 		_ = m.postRepository.AddManyPosts(posts...)
-
-		go func() {
-			m.delayedQueue <- source
-		}()
 	}
 }
 
-func (m *Manager) processDelayedQueue() {
+func (m *Manager) runTimer() {
+	t := time.NewTimer(10 * time.Minute)
+	defer t.Stop()
+
 	for {
-		time.Sleep(3 * time.Minute)
-		go func() {
-			m.immediateQueue <- <-m.delayedQueue
-		}()
+		select {
+		case <-t.C:
+			// Clean up
+			if err := m.sourceRepository.RemoveEmptySources(); err != nil {
+				m.logger.Errorf("failed to clean up unused sources: %s", err)
+			}
+
+			// Update
+			if err := m.enqueueExistingSources(); err != nil {
+				m.logger.Errorf("failed to enqueue existing sources: %s", err)
+			}
+		}
 	}
 }

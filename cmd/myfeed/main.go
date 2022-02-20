@@ -14,6 +14,7 @@ func main() {
 		AssetsRoot:   "assets",
 		TemplateRoot: "views",
 		StaticFS:     static.FS,
+		DataSource:   "postgres://misir:@localhost:5432/myfeed_db?sslmode=disable",
 	}
 
 	app := web.NewApp(config)
