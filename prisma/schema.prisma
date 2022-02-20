@@ -1,0 +1,66 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password_hash String
+  created_at    DateTime @default(now())
+
+  feeds Feed[]
+
+  @@map("users")
+}
+
+model Feed {
+  id         Int      @id @default(autoincrement())
+  name       String
+  user_id    String
+  is_public  Boolean
+  created_at DateTime @default(now())
+
+  user    User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  sources FeedSource[]
+
+  @@map("feeds")
+}
+
+model Source {
+  id         Int      @id @default(autoincrement())
+  title      String
+  url        String
+  created_at DateTime @default(now())
+
+  posts Post[]
+  feeds FeedSource[]
+
+  @@map("sources")
+}
+
+model FeedSource {
+  feed_id   Int
+  source_id Int
+
+  feed   Feed   @relation(fields: [feed_id], references: [id], onDelete: Cascade)
+  source Source @relation(fields: [source_id], references: [id], onDelete: Cascade)
+
+  @@id([feed_id, source_id])
+  @@map("feed_source")
+}
+
+model Post {
+  id           Int       @id @default(autoincrement())
+  source_id    Int
+  title        String
+  description  String
+  url          String
+  published_at DateTime?
+  updated_at   DateTime?
+  created_at   DateTime  @default(now())
+
+  source Source @relation(fields: [source_id], references: [id], onDelete: Cascade)
+
+  @@map("posts")
+}
