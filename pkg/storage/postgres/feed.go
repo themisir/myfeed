@@ -19,8 +19,8 @@ type feedRepository struct {
 
 const (
 	addFeedQuery           = `INSERT INTO feeds (name, user_id, is_public) VALUES ($1, $2, $3) RETURNING id`
-	getUserFeedsQuery      = `SELECT (id, name, user_id, is_public) FROM feeds WHERE user_id = $1`
-	getFeedQuery           = `SELECT (id, name, user_id, is_public) FROM feeds WHERE id = $1`
+	getUserFeedsQuery      = `SELECT id, name, user_id, is_public FROM feeds WHERE user_id = $1`
+	getFeedQuery           = `SELECT id, name, user_id, is_public FROM feeds WHERE id = $1`
 	removeFeedQuery        = `DELETE FROM feeds WHERE id = $1`
 	updateFeedQuery        = `UPDATE feeds SET name = $1, is_public = $2 WHERE id = $3`
 	removeFeedSourcesQuery = `DELETE FROM feed_source WHERE feed_id = $1`
@@ -81,7 +81,7 @@ func (r *feedRepository) RemoveFeed(feedId int) error {
 }
 
 func (r *feedRepository) UpdateFeed(feedId int, data updating.Feed) error {
-	_, err := r.updateFeedStmt.Exec(feedId, data.Name, data.IsPublic)
+	_, err := r.updateFeedStmt.Exec(data.Name, data.IsPublic, feedId)
 	return err
 }
 

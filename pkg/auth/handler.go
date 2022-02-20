@@ -62,3 +62,8 @@ func (h *Handler) Authorize(c echo.Context) bool {
 func (h *Handler) HashPassword(password string) string {
 	return h.hasher.HashPassword(password)
 }
+
+// SignOut removes stored authentication data from request context
+func (h *Handler) SignOut(c echo.Context) bool {
+	return h.schema.SignOut(c) == nil
+}

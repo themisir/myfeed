@@ -96,6 +96,8 @@ func (m *Manager) processSources() {
 
 		resolved, err := m.resolver.Resolve(source.url)
 		if err != nil {
+			fmt.Printf("%s", err)
+			continue
 			// TODO: handle error
 		}
 

@@ -17,8 +17,8 @@ type userRepository struct {
 
 const (
 	addUserQuery         = `INSERT INTO users (id, email, password_hash) VALUES ($1, $2, $3)`
-	getUserByIdQuery     = `SELECT (id, email, password_hash) FROM users WHERE id = $1`
-	findUserByEmailQuery = `SELECT (id, email, password_hash) FROM users WHERE email = $1`
+	getUserByIdQuery     = `SELECT id, email, password_hash FROM users WHERE id = $1`
+	findUserByEmailQuery = `SELECT id, email, password_hash FROM users WHERE email = $1`
 )
 
 func newUserRepository(c *Connection) (r *userRepository, err error) {

@@ -12,7 +12,7 @@ type Claims interface {
 
 type Schema interface {
 	SignIn(c echo.Context, claims Claims) error
-	SignOut(c echo.Context, claims Claims) error
+	SignOut(c echo.Context) error
 	Authorize(c echo.Context) Claims
 }
 

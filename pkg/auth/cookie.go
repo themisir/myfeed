@@ -85,7 +85,7 @@ func (s *cookieSchema) SignIn(c echo.Context, claims Claims) error {
 	return nil
 }
 
-func (s *cookieSchema) SignOut(c echo.Context, _ Claims) error {
+func (s *cookieSchema) SignOut(c echo.Context) error {
 	// Replace existing cookie with expired one
 	c.SetCookie(s.Cookie.Expired())
 

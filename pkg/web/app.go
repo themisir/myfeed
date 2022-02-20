@@ -153,6 +153,11 @@ func (a *App) initAuth(e *echo.Echo) {
 		return c.Redirect(http.StatusSeeOther, "/feeds")
 	})
 
+	e.GET("/logout", func(c echo.Context) error {
+		handler.SignOut(c)
+		return c.Redirect(http.StatusSeeOther, "/")
+	})
+
 	e.Use(Authorize(false))
 }
 
