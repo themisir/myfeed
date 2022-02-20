@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/themisir/myfeed/pkg/adding"
 	"github.com/themisir/myfeed/pkg/listing"
 	"github.com/themisir/myfeed/pkg/updating"
@@ -19,12 +20,12 @@ type postRepository struct {
 }
 
 const (
-	addPostQuery              = `INSERT INTO posts (source_id, title, description, url, published_at, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id`
-	getSourcePostsQuery       = `SELECT id, title, description, url, published_at, updated_at FROM posts WHERE source_id = ?`
-	getFeedPostsQuery         = `SELECT p.id, p.title, p.description, p.url, p.published_at, p.updated_at, s.id, s.title, s.url FROM posts p JOIN sources s ON s.id = p.source_id JOIN feed_source fs ON fs.source_id = p.source_id WHERE fs.feed_id = ?`
-	removeSourcePostQuery     = `DELETE FROM posts WHERE source_id = ? AND id = ?`
-	removeAllSourcePostsQuery = `DELETE FROM posts WHERE source_id = ?`
-	updateSourcePostQuery     = `UPDATE posts SET title = ?, description = ?, url = ?, published_at = ?, updated_at = ? WHERE source_id = ? AND id = ?`
+	addPostQuery              = `INSERT INTO posts (source_id, title, description, url, published_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`
+	getSourcePostsQuery       = `SELECT id, title, description, url, published_at, updated_at FROM posts WHERE source_id = $1`
+	getFeedPostsQuery         = `SELECT p.id, p.title, p.description, p.url, p.published_at, p.updated_at, s.id, s.title, s.url FROM posts p JOIN sources s ON s.id = p.source_id JOIN feed_source fs ON fs.source_id = p.source_id WHERE fs.feed_id = $1`
+	removeSourcePostQuery     = `DELETE FROM posts WHERE source_id = $1 AND id = $2`
+	removeAllSourcePostsQuery = `DELETE FROM posts WHERE source_id = $1`
+	updateSourcePostQuery     = `UPDATE posts SET title = $1, description = $2, url = $3, published_at = $4, updated_at = $5 WHERE source_id = $6 AND id = $7`
 )
 
 func newPostRepository(c *Connection) (r *postRepository, err error) {
@@ -57,13 +58,13 @@ func (r *postRepository) AddPost(data adding.PostData) (adding.Post, error) {
 }
 
 func (r *postRepository) AddManyPosts(items ...adding.PostData) error {
-	query := `INSERT INTO posts (source_id, title, description, url, published_at, updated_at) VALUES `
+	var query string
 	params := make([]interface{}, 6*len(items))
 	for i, item := range items {
 		if i > 0 {
 			query += ", "
 		}
-		query += "(?, ?, ?, ?, ?, ?)"
+		query += fmt.Sprintf("($%v, $%v, $%v, $%v, $%v, $%v)", i*6+1, i*6+2, i*6+3, i*6+4, i*6+5, i*6+6)
 		params := params[i*6:]
 		params[0] = item.SourceId
 		params[1] = item.Title
@@ -72,6 +73,7 @@ func (r *postRepository) AddManyPosts(items ...adding.PostData) error {
 		params[4] = item.PublishedAt
 		params[5] = item.UpdatedAt
 	}
+	query = fmt.Sprintf(`INSERT INTO posts (source_id, title, description, url, published_at, updated_at) VALUES %s`, query)
 	_, err := r.c.db.Exec(query, params...)
 	return err
 }

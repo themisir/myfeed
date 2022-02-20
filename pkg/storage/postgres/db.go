@@ -2,6 +2,8 @@ package postgres
 
 import (
 	"database/sql"
+	"fmt"
+
 	_ "github.com/lib/pq"
 	"github.com/themisir/myfeed/pkg/models"
 )
@@ -84,5 +86,8 @@ type prepare struct {
 
 func (p *prepare) Exec(db *sql.DB) (err error) {
 	*p.stmt, err = db.Prepare(p.query)
+	if err != nil {
+		err = fmt.Errorf("prepare query %s failed: %s", p.query, err)
+	}
 	return
 }

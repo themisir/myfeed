@@ -19,13 +19,13 @@ type sourceRepository struct {
 }
 
 const (
-	addSourceQuery       = `INSERT INTO sources (title, url) VALUES (?, ?) RETURNING id`
-	getSourceQuery       = `SELECT (id, title, url) FROM sources WHERE id = ?`
+	addSourceQuery       = `INSERT INTO sources (title, url) VALUES ($1, $2) RETURNING id`
+	getSourceQuery       = `SELECT (id, title, url) FROM sources WHERE id = $1`
 	getSourcesQuery      = `SELECT (id, title, url) FROM sources`
-	getFeedSourcesQuery  = `SELECT (id, title, url) FROM sources JOIN source_feed sf ON sf.source_id = sources.id WHERE sf.feed_id = ?`
-	findSourceByUrlQuery = `SELECT (id, title, url) FROM sources WHERE url = ?`
-	removeSource         = `DELETE FROM sources WHERE id = ?`
-	updateSource         = `UPDATE sources SET title = ? WHERE id = ?`
+	getFeedSourcesQuery  = `SELECT (id, title, url) FROM sources JOIN feed_source fs ON fs.source_id = sources.id WHERE fs.feed_id = $1`
+	findSourceByUrlQuery = `SELECT (id, title, url) FROM sources WHERE url = $1`
+	removeSource         = `DELETE FROM sources WHERE id = $1`
+	updateSource         = `UPDATE sources SET title = $1 WHERE id = $2`
 )
 
 func newSourceRepository(c *Connection) (r *sourceRepository, err error) {

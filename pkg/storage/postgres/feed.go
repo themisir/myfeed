@@ -18,12 +18,12 @@ type feedRepository struct {
 }
 
 const (
-	addFeedQuery           = `INSERT INTO feeds (name, user_id, is_public) VALUES (?, ?, ?) RETURNING id`
-	getUserFeedsQuery      = `SELECT (id, name, user_id, is_public) FROM feeds WHERE user_id = ?`
-	getFeedQuery           = `SELECT (id, name, user_id, is_public) FROM feeds WHERE id = ?`
-	removeFeedQuery        = `DELETE FROM feeds WHERE id = ?`
-	updateFeedQuery        = `UPDATE feeds SET name = ?, is_public = ? WHERE id = ?`
-	removeFeedSourcesQuery = `DELETE FROM feed_source WHERE feed_id = ?`
+	addFeedQuery           = `INSERT INTO feeds (name, user_id, is_public) VALUES ($1, $2, $3) RETURNING id`
+	getUserFeedsQuery      = `SELECT (id, name, user_id, is_public) FROM feeds WHERE user_id = $1`
+	getFeedQuery           = `SELECT (id, name, user_id, is_public) FROM feeds WHERE id = $1`
+	removeFeedQuery        = `DELETE FROM feeds WHERE id = $1`
+	updateFeedQuery        = `UPDATE feeds SET name = $1, is_public = $2 WHERE id = $3`
+	removeFeedSourcesQuery = `DELETE FROM feed_source WHERE feed_id = $1`
 )
 
 func newFeedRepository(c *Connection) (r *feedRepository, err error) {
@@ -87,14 +87,15 @@ func (r *feedRepository) UpdateFeed(feedId int, data updating.Feed) error {
 
 func (r *feedRepository) UpdateFeedSources(feedId int, sourceIds ...int) error {
 	// build insert query
-	insertQuery := `INSERT INTO feed_source (feed_id, source_id) VALUES `
+	var query string
 	for i, sourceId := range sourceIds {
 		var prefix string
 		if i > 0 {
 			prefix = " ,"
 		}
-		insertQuery += fmt.Sprintf("%s(%v, %v)", prefix, feedId, sourceId)
+		query += fmt.Sprintf("%s(%v, %v)", prefix, feedId, sourceId)
 	}
+	query = fmt.Sprintf("INSERT INTO feed_source (feed_id, source_id) VALUES %s", query)
 
 	// Apply updates
 	tx, err := r.c.db.Begin()
@@ -104,7 +105,7 @@ func (r *feedRepository) UpdateFeedSources(feedId int, sourceIds ...int) error {
 	if _, err := tx.Exec(removeFeedSourcesQuery, feedId); err != nil {
 		return err
 	}
-	if _, err := tx.Exec(insertQuery); err != nil {
+	if _, err := tx.Exec(query); err != nil {
 		return err
 	}
 	return tx.Commit()

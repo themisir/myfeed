@@ -44,7 +44,7 @@ build-for-%:
 	GOOS=$(firstword $(subst _, ,$*)) GOARCH=$(lastword $(subst _, ,$*)) \
 		$(MAKE) build
 
-build: # @HELP builds binaries for one platform ($OS/$ARCH)
+build: # @HELP builds binaries for current platform
 build: $(addprefix build-bin-, $(BINS))
 
 build-bin-%:

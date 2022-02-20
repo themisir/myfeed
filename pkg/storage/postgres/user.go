@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"database/sql"
+	"github.com/google/uuid"
 	"github.com/themisir/myfeed/pkg/adding"
 	"github.com/themisir/myfeed/pkg/listing"
 	"strings"
@@ -15,9 +16,9 @@ type userRepository struct {
 }
 
 const (
-	addUserQuery         = `INSERT INTO users (email, password_hash) VALUES (?, ?) RETURNING id`
-	getUserByIdQuery     = `SELECT (id, email, password_hash) FROM users WHERE id = ?`
-	findUserByEmailQuery = `SELECT (id, email, password_hash) FROM users WHERE email = ?`
+	addUserQuery         = `INSERT INTO users (id, email, password_hash) VALUES ($1, $2, $3)`
+	getUserByIdQuery     = `SELECT (id, email, password_hash) FROM users WHERE id = $1`
+	findUserByEmailQuery = `SELECT (id, email, password_hash) FROM users WHERE email = $1`
 )
 
 func newUserRepository(c *Connection) (r *userRepository, err error) {
@@ -33,8 +34,8 @@ func newUserRepository(c *Connection) (r *userRepository, err error) {
 func (r *userRepository) AddUser(data adding.UserData) (adding.User, error) {
 	data.Email = strings.ToLower(data.Email)
 
-	var id string
-	err := r.addUserStmt.QueryRow(data.Email, data.PasswordHash).Scan(&id)
+	id := uuid.New().String()
+	_, err := r.addUserStmt.Exec(id, data.Email, data.PasswordHash)
 	if err != nil {
 		return nil, err
 	}

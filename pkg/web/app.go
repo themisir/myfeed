@@ -2,6 +2,13 @@ package web
 
 import (
 	"errors"
+	"fmt"
+	"io/fs"
+	"net/http"
+	"net/mail"
+	"os"
+	"time"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/themisir/myfeed/pkg/adding"
@@ -9,12 +16,8 @@ import (
 	"github.com/themisir/myfeed/pkg/models"
 	"github.com/themisir/myfeed/pkg/sources"
 	"github.com/themisir/myfeed/pkg/storage/memory"
+	"github.com/themisir/myfeed/pkg/storage/postgres"
 	"github.com/themisir/myfeed/pkg/web/renderer"
-	"io/fs"
-	"net/http"
-	"net/mail"
-	"os"
-	"time"
 )
 
 type AppConfig struct {
@@ -154,15 +157,29 @@ func (a *App) initAuth(e *echo.Echo) {
 }
 
 func (a *App) initStorage() {
+	a.initDbStorage()
+}
+
+func (a *App) initDbStorage() {
+	db, err := postgres.Connect("postgres://misir:@localhost:5432/myfeed_db?sslmode=disable")
+	initerr(err, "failed to connect to the database: %s")
+	a.feeds, err = db.Feeds()
+	initerr(err, "failed to create feed repository: %s")
+	a.posts, err = db.Posts()
+	initerr(err, "failed to create post repository: %s")
+	a.sources, err = db.Sources()
+	initerr(err, "failed to create source repository: %s")
+	a.users, err = db.Users()
+	initerr(err, "failed to create user repository: %s")
+}
+
+func (a *App) initMemoryStorage() {
 	feedRepository := memory.NewFeedRepository()
 	feedRepository.Persist(memory.JSON("data/feeds.json"))
-
 	sourceRepository := memory.NewSourceRepository(feedRepository)
 	sourceRepository.Persist(memory.JSON("data/sources.json"))
-
 	postRepository := memory.NewPostRepository(feedRepository, sourceRepository)
 	postRepository.Persist(memory.JSON("data/posts.json"))
-
 	userRepository := memory.NewUserRepository()
 	userRepository.Persist(memory.JSON("data/users.json"))
 
@@ -175,7 +192,7 @@ func (a *App) initStorage() {
 func (a *App) initManager() {
 	a.sourceManager = sources.NewManager(a.sources, a.posts, a.feeds)
 	if err := a.sourceManager.Start(); err != nil {
-		panic(err)
+		initerr(err, "failed to start source manager: %s")
 	}
 }
 
@@ -191,4 +208,10 @@ func (a *App) initRoutes(e *echo.Echo) {
 
 	e.GET("/feeds/:feedId/edit", a.getFeedsEditHandler, Authorize(true))
 	e.POST("/feeds/:feedId/edit", a.postFeedsEditHandler, Authorize(true))
+}
+
+func initerr(err error, format string) {
+	if err != nil {
+		panic(fmt.Sprintf(format, err))
+	}
 }
