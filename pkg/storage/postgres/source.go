@@ -85,6 +85,7 @@ func (r *sourceRepository) GetSource(sourceId int) (listing.Source, error) {
 
 func (r *sourceRepository) GetSources() ([]listing.Source, error) {
 	rows, err := r.getSourcesStmt.Query()
+	defer rows.Close()
 	if err != nil {
 		return nil, err
 	}
@@ -93,6 +94,7 @@ func (r *sourceRepository) GetSources() ([]listing.Source, error) {
 
 func (r *sourceRepository) GetFeedSources(feedId int) ([]listing.Source, error) {
 	rows, err := r.getFeedSourcesStmt.Query(feedId)
+	defer rows.Close()
 	if err != nil {
 		return nil, err
 	}

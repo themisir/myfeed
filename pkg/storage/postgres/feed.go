@@ -54,6 +54,7 @@ func (r *feedRepository) AddFeed(data adding.FeedData) (adding.Feed, error) {
 
 func (r *feedRepository) GetUserFeeds(userId string) ([]listing.Feed, error) {
 	rows, err := r.getUserFeedsStmt.Query(userId)
+	defer rows.Close()
 	if err != nil {
 		return nil, err
 	}
