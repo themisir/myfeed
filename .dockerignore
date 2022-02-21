@@ -3,4 +3,5 @@
 /bin/
 /data/
 .env
+deploy.sh
 Makefile
