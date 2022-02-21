@@ -4,13 +4,16 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(uuid())
-  email         String   @unique
-  password_hash String
-  created_at    DateTime @default(now())
+  id                  String   @id @default(uuid())
+  username            String
+  normalized_username String   @unique
+  email               String
+  password_hash       String
+  created_at          DateTime @default(now())
 
   feeds Feed[]
 
+  @@index([normalized_username])
   @@map("users")
 }
 

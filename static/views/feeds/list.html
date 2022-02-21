@@ -1,17 +1,21 @@
 <h2>Feeds</h2>
 <hr />
 
-<a href="/feeds/create">
-  <button>Create a new feed</button>
-</a>
+<blockquote>
+  <p style="margin-top: 0">
+    Feeds are your personalized collections of article sources. You can create feeds from
+    multiple sources and myfeed will create chronological article feed from provided feed sources.
+  </p>
+  <a href="/feeds/create">Create a new feed</a>
+</blockquote>
 
-<ol>
+<div>
   {{ range .Feeds -}}
-  <li>
+  <div>
     <p>
-      <a href="/feeds/{{ .Id }}">{{ .Name }}</a><br/>
-      <a href="/feeds/{{ .Id }}/edit">Edit</a>
+      <strong><a href="/feeds/{{ .Id }}">{{ .Name }}</a></strong><br/>
+      <small><a href="/feeds/{{ .Id }}/edit">Edit</a></small>
     </p>
-  </li>
+  </div>
   {{- end }}
-</ol>
+</div>

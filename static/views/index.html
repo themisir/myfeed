@@ -12,3 +12,17 @@
   That's it. No more bullsh*t. No features to convince you to start paying me by
   making you believe that you can't live without shared notes on your feed reader. Like wtf?
 </p>
+
+<div>
+  {{ if .User -}}
+  <a href="/feeds">
+    <button>Browse feeds</button>
+  </a>
+  {{- else -}}
+  <a href="/register">
+    <button>Create an account</button>
+  </a>
+  <span>or</span>
+  <a href="/login">log in</a>
+  {{- end }}
+</div>

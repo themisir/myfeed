@@ -1,4 +1,4 @@
-<h3>Edit Feed</h3>
+<h3>Edit feed</h3>
 <hr />
 
 <form method="post">
@@ -32,7 +32,12 @@
 
   <div class="form-group">
     <button type="submit">Save</button>
+    <a style="color: #f34141; margin-left: 15px" href="#" class="remove-btn">Remove feed</a>
   </div>
+</form>
+
+<form id="remove-form" action="/feeds/delete" method="post">
+  <input type="hidden" name="feedId" value="{{ .Feed.Id }}" />
 </form>
 
 <script>
@@ -41,7 +46,7 @@
   }
 
   function editItem(event) {
-    if (event.target.value.length == 0) {
+    if (event.target.value.length === 0) {
       event.target.parentElement.remove();
     }
   }
@@ -50,7 +55,7 @@
     const newEntryEditor = element.querySelector(':last-child>input');
 
     function editItem(event) {
-      if (event.target.value.length == 0) {
+      if (event.target.value.length === 0) {
         event.target.parentElement.remove();
         newEntryEditor.focus();
       }
@@ -88,4 +93,11 @@
 
   Array.from(document.getElementsByClassName('source-editor'))
     .forEach(createSourceEditor);
+
+  document.querySelector('.remove-btn').addEventListener('click', function (event) {
+      event.preventDefault();
+      if (confirm('Are you sure?')) {
+          document.getElementById('remove-form').submit();
+      }
+  });
 </script>

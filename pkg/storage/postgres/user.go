@@ -9,16 +9,16 @@ import (
 )
 
 type userRepository struct {
-	c                   *Connection
-	addUserStmt         *sql.Stmt
-	getUserByIdStmt     *sql.Stmt
-	findUserByEmailStmt *sql.Stmt
+	c                      *Connection
+	addUserStmt            *sql.Stmt
+	getUserByIdStmt        *sql.Stmt
+	findUserByUsernameStmt *sql.Stmt
 }
 
 const (
-	addUserQuery         = `INSERT INTO users (id, email, password_hash) VALUES ($1, $2, $3)`
-	getUserByIdQuery     = `SELECT id, email, password_hash FROM users WHERE id = $1`
-	findUserByEmailQuery = `SELECT id, email, password_hash FROM users WHERE email = $1`
+	addUserQuery            = `INSERT INTO users (id, email, username, normalized_username, password_hash) VALUES ($1, $2, $3, $4, $5)`
+	getUserByIdQuery        = `SELECT id, email, username, normalized_username, password_hash FROM users WHERE id = $1`
+	findUserByUsernameQuery = `SELECT id, email, username, normalized_username, password_hash FROM users WHERE normalized_username = $1`
 )
 
 func newUserRepository(c *Connection) (r *userRepository, err error) {
@@ -26,38 +26,39 @@ func newUserRepository(c *Connection) (r *userRepository, err error) {
 	err = c.Batch().
 		Prepare(addUserQuery, &r.addUserStmt).
 		Prepare(getUserByIdQuery, &r.getUserByIdStmt).
-		Prepare(findUserByEmailQuery, &r.findUserByEmailStmt).
+		Prepare(findUserByUsernameQuery, &r.findUserByUsernameStmt).
 		Exec()
 	return
 }
 
 func (r *userRepository) AddUser(data adding.UserData) (adding.User, error) {
-	data.Email = strings.ToLower(data.Email)
-
 	id := uuid.New().String()
-	_, err := r.addUserStmt.Exec(id, data.Email, data.PasswordHash)
+	normalizedUsername := strings.ToUpper(data.Username)
+	_, err := r.addUserStmt.Exec(id, data.Email, data.Username, normalizedUsername, data.PasswordHash)
 	if err != nil {
 		return nil, err
 	}
 	return &user{
-		id:           id,
-		email:        data.Email,
-		passwordHash: data.PasswordHash,
+		id:                 id,
+		email:              data.Email,
+		username:           data.Username,
+		normalizedUsername: normalizedUsername,
+		passwordHash:       data.PasswordHash,
 	}, nil
 }
 
 func (r *userRepository) GetUserById(id string) (listing.User, error) {
 	var u user
-	err := r.getUserByIdStmt.QueryRow(id).Scan(&u.id, &u.email, &u.passwordHash)
+	err := r.getUserByIdStmt.QueryRow(id).Scan(&u.id, &u.email, &u.username, &u.normalizedUsername, &u.passwordHash)
 	if err != nil {
 		return nil, err
 	}
 	return &u, err
 }
 
-func (r *userRepository) FindUserByEmail(email string) (listing.User, error) {
+func (r *userRepository) FindUserByUsername(username string) (listing.User, error) {
 	var u user
-	err := r.findUserByEmailStmt.QueryRow(email).Scan(&u.id, &u.email, &u.passwordHash)
+	err := r.findUserByUsernameStmt.QueryRow(strings.ToUpper(username)).Scan(&u.id, &u.email, &u.username, &u.normalizedUsername, &u.passwordHash)
 	if err != nil {
 		return nil, err
 	}
@@ -65,9 +66,11 @@ func (r *userRepository) FindUserByEmail(email string) (listing.User, error) {
 }
 
 type user struct {
-	id           string
-	email        string
-	passwordHash string
+	id                 string
+	email              string
+	username           string
+	normalizedUsername string
+	passwordHash       string
 }
 
 func (u *user) Id() string {
@@ -80,4 +83,8 @@ func (u *user) Email() string {
 
 func (u *user) PasswordHash() string {
 	return u.passwordHash
+}
+
+func (u *user) Username() string {
+	return u.username
 }

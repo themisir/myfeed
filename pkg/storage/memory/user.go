@@ -9,9 +9,11 @@ import (
 )
 
 type UserData struct {
-	Id           string `json:"id"`
-	Email        string `json:"email"`
-	PasswordHash string `json:"password_hash"`
+	Id                 string `json:"id"`
+	Email              string `json:"email"`
+	Username           string `json:"username"`
+	NormalizedUsername string `json:"normalized_username"`
+	PasswordHash       string `json:"password_hash"`
 }
 
 type user struct {
@@ -24,6 +26,10 @@ func (u *user) Id() string {
 
 func (u *user) Email() string {
 	return u.UserData.Email
+}
+
+func (u *user) Username() string {
+	return u.UserData.Username
 }
 
 func (u *user) PasswordHash() string {
@@ -64,9 +70,11 @@ func (r *userRepository) load() {
 
 func (r *userRepository) AddUser(data adding.UserData) (adding.User, error) {
 	item := &user{UserData{
-		Id:           strconv.Itoa(len(r.users)),
-		Email:        strings.ToLower(data.Email),
-		PasswordHash: data.PasswordHash,
+		Id:                 strconv.Itoa(len(r.users)),
+		Email:              data.Email,
+		Username:           data.Username,
+		NormalizedUsername: strings.ToUpper(data.Username),
+		PasswordHash:       data.PasswordHash,
 	}}
 
 	r.users = append(r.users, item)
@@ -80,18 +88,15 @@ func (r *userRepository) GetUserById(id string) (listing.User, error) {
 			return user, nil
 		}
 	}
-
 	return nil, listing.ErrNotFound
 }
 
-func (r *userRepository) FindUserByEmail(email string) (listing.User, error) {
-	normalizedEmail := strings.ToLower(email)
-
+func (r *userRepository) FindUserByUsername(username string) (listing.User, error) {
+	normalizedUsername := strings.ToUpper(username)
 	for _, user := range r.users {
-		if user.Email() == normalizedEmail {
+		if user.NormalizedUsername == normalizedUsername {
 			return user, nil
 		}
 	}
-
 	return nil, listing.ErrNotFound
 }

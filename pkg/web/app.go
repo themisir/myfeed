@@ -58,7 +58,7 @@ func NewApp(config *AppConfig) *App {
 	return app
 }
 
-func (a *App) Run() error {
+func (a *App) Run() {
 	e := echo.New()
 
 	// Configure renderer
@@ -80,7 +80,9 @@ func (a *App) Run() error {
 	a.initManager()
 	a.initRoutes(e)
 
-	return e.Start(a.config.Address)
+	if err := e.Start(a.config.Address); err != nil {
+		a.logger.Errorf("failed to start server: %s", err)
+	}
 }
 
 func (a *App) initAuth(e *echo.Echo) {
@@ -93,10 +95,10 @@ func (a *App) initAuth(e *echo.Echo) {
 	})
 
 	e.POST("/login", func(c echo.Context) error {
-		email := c.FormValue("email")
+		username := c.FormValue("username")
 		password := c.FormValue("password")
 
-		user, _ := a.users.FindUserByEmail(email)
+		user, _ := a.users.FindUserByUsername(username)
 		if user != nil {
 			err := handler.SignIn(c, user, password)
 			if err == nil {
@@ -122,6 +124,7 @@ func (a *App) initAuth(e *echo.Echo) {
 
 	e.POST("/register", func(c echo.Context) error {
 		email := c.FormValue("email")
+		username := c.FormValue("username")
 		password := c.FormValue("password")
 
 		if _, err := mail.ParseAddress(email); err != nil {
@@ -138,8 +141,16 @@ func (a *App) initAuth(e *echo.Echo) {
 			})
 		}
 
+		if _, err := a.users.FindUserByUsername(username); err == nil {
+			return c.Render(http.StatusOK, "register.html", echo.Map{
+				"Error": "Username is already in use",
+				"Title": "Register",
+			})
+		}
+
 		user, err := a.users.AddUser(adding.UserData{
 			Email:        email,
+			Username:     username,
 			PasswordHash: handler.HashPassword(password),
 		})
 		if err != nil {
@@ -241,6 +252,8 @@ func (a *App) initRoutes(e *echo.Echo) {
 
 	e.GET("/feeds/create", a.getFeedsCreateHandler, Authorize(true))
 	e.POST("/feeds/create", a.postFeedsCreateHandler, Authorize(true))
+
+	e.POST("/feeds/delete", a.postFeedsDeleteHandler, Authorize(true))
 
 	e.GET("/feeds/:feedId/edit", a.getFeedsEditHandler, Authorize(true))
 	e.POST("/feeds/:feedId/edit", a.postFeedsEditHandler, Authorize(true))

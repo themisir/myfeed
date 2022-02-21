@@ -15,21 +15,24 @@
 </head>
 <body>
   <header>
-    <div>
+    <div class="logo">
       📚 <a href="/">myfeed.dev</a>
     </div>
-    <div>
-      {{ if .Data.IsLoggedIn }}
-      {{ with .Data.User }}
-      Logged in as <a href="#">@{{ .Email }}</a>
+    <div class="menu">
+      {{ if .Data.User -}}
+      <a href="/feeds">feeds</a>
+      {{- end }}
+    </div>
+    <div class="account">
+      {{ with .Data.User -}}
+      Logged in as <a href="/feeds">{{ .Username }}</a>
       —
       <a href="/logout">Log out</a>
-      {{ end }}
-      {{ else }}
+      {{- else -}}
       <a href="/login">Log in</a>
       —
       <a href="/register">Register</a>
-      {{ end }}
+      {{- end }}
     </div>
   </header>
   {{ .Inner }}

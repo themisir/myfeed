@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/themisir/myfeed/pkg/adding"
 	"github.com/themisir/myfeed/pkg/listing"
@@ -49,7 +50,7 @@ func (a *App) postFeedsCreateHandler(c echo.Context) error {
 		return echo.ErrInternalServerError
 	}
 
-	_, err = a.feeds.AddFeed(adding.FeedData{
+	feed, err := a.feeds.AddFeed(adding.FeedData{
 		Name:     c.FormValue("name"),
 		IsPublic: true,
 		UserId:   userId,
@@ -58,7 +59,7 @@ func (a *App) postFeedsCreateHandler(c echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
-	return c.Redirect(http.StatusSeeOther, "/feeds")
+	return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/feeds/%v/edit", feed.Id()))
 }
 
 // GET /feeds/:feedId/edit
@@ -96,6 +97,38 @@ func (a *App) getFeedsEditHandler(c echo.Context) error {
 		"Sources": sources,
 		"Title":   "Edit feed",
 	})
+}
+
+// POST /feeds/delete
+func (a *App) postFeedsDeleteHandler(c echo.Context) error {
+	userId, err := GetUserId(c)
+	if err != nil {
+		c.Logger().Errorf("Failed to get user id: %s", err)
+		return echo.ErrInternalServerError
+	}
+
+	// Parse feed id
+	feedId, err := strconv.Atoi(c.FormValue("feedId"))
+	if err != nil {
+		return echo.ErrNotFound
+	}
+
+	// Find feed
+	feed, err := a.feeds.GetFeed(feedId)
+	if err != nil {
+		return echo.ErrNotFound
+	}
+	if feed.UserId() != userId {
+		return echo.ErrForbidden
+	}
+
+	// Remove feed
+	if err := a.feeds.RemoveFeed(feedId); err != nil {
+		a.logger.Errorf("failed to remove feed by id '%v': %s", feedId, err)
+		return echo.ErrInternalServerError
+	}
+
+	return c.Redirect(http.StatusSeeOther, "/feeds")
 }
 
 type postFeedsEditDto struct {

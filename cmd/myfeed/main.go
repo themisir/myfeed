@@ -1,22 +1,28 @@
 package main
 
 import (
-	"log"
+	"os"
 
-	"github.com/themisir/myfeed/static"
+	"github.com/joho/godotenv"
 
 	"github.com/themisir/myfeed/pkg/web"
+	"github.com/themisir/myfeed/static"
 )
 
+//goland:noinspection GoUnhandledErrorResult
 func main() {
-	config := &web.AppConfig{
-		Address:      ":2342",
-		AssetsRoot:   "assets",
-		TemplateRoot: "views",
-		StaticFS:     static.FS,
-		DataSource:   "postgres://misir:@localhost:5432/myfeed_db?sslmode=disable",
-	}
+	godotenv.Load()
 
-	app := web.NewApp(config)
-	log.Fatal(app.Run())
+	if dataSource, ok := os.LookupEnv("DATABASE_URL"); ok {
+		config := &web.AppConfig{
+			Address:      ":2342",
+			AssetsRoot:   "assets",
+			TemplateRoot: "views",
+			StaticFS:     static.FS,
+			DataSource:   dataSource,
+		}
+
+		app := web.NewApp(config)
+		app.Run()
+	}
 }
