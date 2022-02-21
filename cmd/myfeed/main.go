@@ -13,9 +13,16 @@ import (
 func main() {
 	godotenv.Load()
 
+	// TODO: Improve config loading using https://github.com/spf13/viper
+
 	if dataSource, ok := os.LookupEnv("DATABASE_URL"); ok {
+		address, ok := os.LookupEnv("ADDRESS")
+		if !ok {
+			address = ":2342"
+		}
+
 		config := &web.AppConfig{
-			Address:      ":2342",
+			Address:      address,
 			AssetsRoot:   "assets",
 			TemplateRoot: "views",
 			StaticFS:     static.FS,
@@ -24,5 +31,7 @@ func main() {
 
 		app := web.NewApp(config)
 		app.Run()
+	} else {
+		panic("DATABASE_URL environment variable is missing")
 	}
 }
