@@ -38,7 +38,8 @@ type App struct {
 	posts   models.PostRepository
 	users   models.UserRepository
 
-	logger log.Logger
+	logger   log.Logger
+	renderer *renderer.MetadataRenderer
 
 	sourceManager *sources.Manager
 }
@@ -59,7 +60,10 @@ func NewApp(config *AppConfig) *App {
 
 func (a *App) Run() error {
 	e := echo.New()
-	e.Renderer = renderer.Layout("layout.html", renderer.Template(a.fs, a.config.TemplateRoot))
+
+	// Configure renderer
+	a.renderer = renderer.Metadata(renderer.Layout("layout.html", renderer.Template(a.fs, a.config.TemplateRoot)))
+	e.Renderer = a.renderer
 
 	e.Pre(middleware.RemoveTrailingSlash())
 
@@ -165,6 +169,23 @@ func (a *App) initAuth(e *echo.Echo) {
 	})
 
 	e.Use(Authorize(false))
+
+	a.renderer.SetDyn("IsLoggedIn", func(c echo.Context) interface{} {
+		return handler.GetUserId(c) != ""
+	})
+
+	a.renderer.SetDyn("User", func(c echo.Context) interface{} {
+		userId := handler.GetUserId(c)
+		if userId != "" {
+			user, err := a.users.GetUserById(userId)
+			if err != nil {
+				a.logger.Errorf("failed to get user by id '%s': %s", userId, err)
+				return nil
+			}
+			return user
+		}
+		return nil
+	})
 }
 
 func (a *App) initStorage() {

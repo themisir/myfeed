@@ -11,11 +11,7 @@ import (
 
 // GET /
 func (a *App) getIndexHandler(c echo.Context) error {
-	if userId, _ := GetUserId(c); userId != "" {
-		return c.Redirect(http.StatusSeeOther, "/feeds")
-	} else {
-		return c.Redirect(http.StatusSeeOther, "/login")
-	}
+	return c.Render(http.StatusOK, "index.html", nil)
 }
 
 // GET /feeds

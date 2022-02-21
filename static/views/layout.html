@@ -14,6 +14,24 @@
   <link rel="manifest" href="/site.webmanifest">
 </head>
 <body>
+  <header>
+    <div>
+      📚 <a href="/">myfeed.dev</a>
+    </div>
+    <div>
+      {{ if .Data.IsLoggedIn }}
+      {{ with .Data.User }}
+      Logged in as <a href="#">@{{ .Email }}</a>
+      —
+      <a href="/logout">Log out</a>
+      {{ end }}
+      {{ else }}
+      <a href="/login">Log in</a>
+      —
+      <a href="/register">Register</a>
+      {{ end }}
+    </div>
+  </header>
   {{ .Inner }}
 </body>
 </html>

@@ -21,3 +21,14 @@
 .form-error {
   color: #ff7272;
 }
+
+header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+header a {
+  color: inherit !important;
+}
