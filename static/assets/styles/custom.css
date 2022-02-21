@@ -18,6 +18,10 @@
   margin-bottom: 20px;
 }
 
+.post-link {
+  color: inherit !important;
+}
+
 .form-error {
   color: #ff7272;
 }
