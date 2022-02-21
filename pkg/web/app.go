@@ -16,7 +16,6 @@ import (
 	"github.com/themisir/myfeed/pkg/auth"
 	"github.com/themisir/myfeed/pkg/models"
 	"github.com/themisir/myfeed/pkg/sources"
-	"github.com/themisir/myfeed/pkg/storage/memory"
 	"github.com/themisir/myfeed/pkg/storage/postgres"
 	"github.com/themisir/myfeed/pkg/web/renderer"
 )
@@ -200,40 +199,20 @@ func (a *App) initAuth(e *echo.Echo) {
 }
 
 func (a *App) initStorage() {
-	if a.config.DataSource == "memory://" {
-		a.initMemoryStorage()
-	} else {
-		a.initDbStorage()
-	}
-}
-
-func (a *App) initDbStorage() {
 	db, err := postgres.Connect(a.config.DataSource)
 	initerr(err, "failed to connect to the database: %s")
+
 	a.feeds, err = db.Feeds()
 	initerr(err, "failed to create feed repository: %s")
+
 	a.posts, err = db.Posts()
 	initerr(err, "failed to create post repository: %s")
+
 	a.sources, err = db.Sources()
 	initerr(err, "failed to create source repository: %s")
+
 	a.users, err = db.Users()
 	initerr(err, "failed to create user repository: %s")
-}
-
-func (a *App) initMemoryStorage() {
-	feedRepository := memory.NewFeedRepository()
-	feedRepository.Persist(memory.JSON("data/feeds.json"))
-	sourceRepository := memory.NewSourceRepository(feedRepository)
-	sourceRepository.Persist(memory.JSON("data/sources.json"))
-	postRepository := memory.NewPostRepository(feedRepository, sourceRepository)
-	postRepository.Persist(memory.JSON("data/posts.json"))
-	userRepository := memory.NewUserRepository()
-	userRepository.Persist(memory.JSON("data/users.json"))
-
-	a.feeds = feedRepository
-	a.sources = sourceRepository
-	a.posts = postRepository
-	a.users = userRepository
 }
 
 func (a *App) initManager() {
