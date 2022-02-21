@@ -15,13 +15,9 @@
 
 <div>
   {{ if .User -}}
-  <a href="/feeds">
-    <button>Browse feeds</button>
-  </a>
+  <a href="/feeds"><button>Browse feeds</button></a>
   {{- else -}}
-  <a href="/register">
-    <button>Create an account</button>
-  </a>
+  <a href="/register"><button>Create an account</button></a>
   <span>or</span>
   <a href="/login">log in</a>
   {{- end }}
