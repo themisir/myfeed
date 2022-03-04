@@ -18,12 +18,7 @@
   {{ with .Feeds }}
   <h2>Your feeds</h2>
   {{ range . -}}
-  <div>
-    <p>
-      <strong><a href="/feeds/{{ .Id }}">{{ .Name }}</a></strong><br/>
-      <small><a href="/feeds/{{ .Id }}/edit">Edit</a></small>
-    </p>
-  </div>
+  <h3><a href="/feeds/{{ .Id }}">{{ .Name }}</a></h3>
   {{- end }}
   {{- else -}}
   <a href="/feeds"><button>Browse feeds</button></a>
