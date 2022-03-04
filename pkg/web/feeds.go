@@ -2,17 +2,26 @@ package web
 
 import (
 	"fmt"
+	"net/http"
+	"strconv"
+
 	"github.com/labstack/echo/v4"
 	"github.com/themisir/myfeed/pkg/adding"
 	"github.com/themisir/myfeed/pkg/listing"
 	"github.com/themisir/myfeed/pkg/updating"
-	"net/http"
-	"strconv"
 )
 
 // GET /
 func (a *App) getIndexHandler(c echo.Context) error {
-	return c.Render(http.StatusOK, "index.html", nil)
+	var feeds []listing.Feed
+	userId, err := GetUserId(c)
+	if err == nil {
+		feeds, err = a.feeds.GetUserFeeds(userId)
+	}
+
+	return c.Render(http.StatusOK, "index.html", echo.Map{
+		"Feeds": feeds,
+	})
 }
 
 // GET /feeds
@@ -222,7 +231,7 @@ func (a *App) getFeedHandler(c echo.Context) error {
 }
 
 func (a *App) createFirstFeed(user listing.User) error {
-	feedName := "My feed"
+	feedName := fmt.Sprintf("%s's personal feed", user.Username())
 	_, err := a.feeds.AddFeed(adding.FeedData{
 		Name:     feedName,
 		UserId:   user.Id(),
