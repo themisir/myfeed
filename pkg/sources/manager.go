@@ -2,9 +2,10 @@ package sources
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/themisir/myfeed/pkg/listing"
 	"github.com/themisir/myfeed/pkg/log"
-	"time"
 
 	"github.com/themisir/myfeed/pkg/adding"
 	"github.com/themisir/myfeed/pkg/models"
@@ -132,7 +133,7 @@ func (m *Manager) processSources() {
 }
 
 func (m *Manager) runTimer() {
-	t := time.NewTimer(10 * time.Minute)
+	t := time.NewTicker(10 * time.Minute)
 	defer t.Stop()
 
 	for {
